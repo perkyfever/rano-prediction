@@ -215,7 +215,7 @@ if __name__ == "__main__":
     report = run_experiment(model_params)
     result = pd.DataFrame(report).reset_index().rename(columns={"index": "fold"})
 
-    output_path = DATA_PATH / "optuna.pkl"
+    output_path = DATA_PATH.parent / "optuna.pkl"
     optuna_data = {
         "best_params": best_params,
         "best_score": best_score,
