@@ -19,7 +19,12 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from catboost import CatBoostClassifier
 
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    roc_auc_score,
+    average_precision_score,
+)
 
 import warnings
 
@@ -82,8 +87,8 @@ def get_model(config):
 
 def run_experiment(config):
     seed_everything()
-    acc_scores, f1_scores, auc_scores = [], [], []
-
+    acc_scores, f1_scores = [], []
+    auc_scores, ap_scores = [], []
     model = get_model(config)
     for fold_idx in range(len(fold_split)):
         X_train, y_train, X_valid, y_valid = get_fold_data(fold_idx)
@@ -101,11 +106,15 @@ def run_experiment(config):
         auc_scores.append(
             roc_auc_score(y_valid, proba_pred, multi_class="ovr", average="macro")
         )
+        ap_scores.append(
+            average_precision_score(y_valid, proba_pred, average="macro", pos_label=1)
+        )
 
     report = {
         "acc_scores": acc_scores,
         "f1_scores": f1_scores,
         "auc_scores": auc_scores,
+        "ap_scores": ap_scores,
     }
 
     return report
@@ -134,6 +143,7 @@ def calculate_final_score(report):
     acc_scores = report["acc_scores"]
     f1_scores = report["f1_scores"]
     auc_scores = report["auc_scores"]
+    ap_scores = report["ap_scores"]
 
     final_score = sp.hmean(f1_scores)
     return final_score
@@ -166,6 +176,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split", type=str, required=True, help="Path to the split file"
     )
+    parser.add_argument(
+        "--num_trials", type=int, default=100, help="Number of trials for tuning"
+    )
+    parser.add_argument(
+        "--num_startup_trials", type=int, default=10, help="Number of startup trials"
+    )
+    parser.add_argument(
+        "--iterations", type=int, default=100, help="Number of iterations for tuning"
+    )
+    parser.add_argument(
+        "--early_stopping_rounds", type=int, default=20, help="Early stopping rounds"
+    )
+    parser.add_argument(
+        "--exp_name", type=str, default="optuna", help="Experiment name"
+    )
 
     args = parser.parse_args()
 
@@ -180,10 +205,10 @@ if __name__ == "__main__":
     )
 
     tuning_config = {
-        "num_trial": 100,
-        "num_startup_trials": 10,
-        "iterations": 100,
-        "early_stopping_rounds": 20,
+        "num_trial": args.num_trials,
+        "num_startup_trials": args.num_startup_trials,
+        "iterations": args.iterations,
+        "early_stopping_rounds": args.early_stopping_rounds,
         "eval_metric": "TotalF1:average=Macro",
         # ===========================
         # Hyperparameters to tune
@@ -215,7 +240,8 @@ if __name__ == "__main__":
     report = run_experiment(model_params)
     result = pd.DataFrame(report).reset_index().rename(columns={"index": "fold"})
 
-    output_path = DATA_PATH.parent / "optuna.pkl"
+    os.makedirs(DATA_PATH.parent / "optuna_results", exist_ok=True)
+    output_path = DATA_PATH.parent / "optuna_results" / f"{args.exp_name}.pkl"
     optuna_data = {
         "best_params": best_params,
         "best_score": best_score,
