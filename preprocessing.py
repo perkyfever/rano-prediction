@@ -95,6 +95,7 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
     Iterates through all scans, registers them to the MNI atlas, and saves them.
     :param patients: Dictionary containing patient data.
     :param data_path: Path to the directory containing patient scans.
+    :param save_to: Path to the directory where registered scans will be saved.
     :return: None
     """
     print("--- Starting Preprocessing: Registering all scans to MNI atlas ---")
@@ -102,8 +103,8 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
     total_cases = sum(len(cases) for cases in patients.values())
     pbar = tqdm(total=total_cases, desc="Registering cases to atlas", unit="case")
 
-    ATLAS_SCANS_PATH = SAVE_TO / "scans"
-    ATLAS_SEGMS_PATH = SAVE_TO / "segmentations"
+    ATLAS_SCANS_PATH = save_to / "scans"
+    ATLAS_SEGMS_PATH = save_to / "segmentations"
 
     for unreliable_pid, cases in patients.items():
         for cid, meta in cases.items():
@@ -201,6 +202,7 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MRI Atlas registration script.")
+    parser.add_argument("--data", type=str, default=".", help="Path to data directory")
     parser.add_argument("--username", type=str, required=True, help="HPC username")
     parser.add_argument(
         "--saveto", type=str, default=".", help="Directory to save results"
@@ -222,10 +224,12 @@ if __name__ == "__main__":
             f"MNI Template not found at: {MNI_TEMPLATE_PATH}. Please update the path."
         )
 
-    DATA_PATH = Path(os.getcwd()) / "data" / "Lumiere"
+    # DATA_PATH = Path(os.getcwd()) / "data" / "Lumiere"
+    DATA_PATH = Path(args.data)
     JSON_PATH = DATA_PATH / "patients.json"
 
     SAVE_TO = Path(args.saveto)
+    os.makedirs(SAVE_TO, exist_ok=True)
     ATLAS_SCANS_PATH = SAVE_TO / "scans"
     ATLAS_SEGMS_PATH = SAVE_TO / "segmentations"
 
@@ -233,4 +237,4 @@ if __name__ == "__main__":
     os.makedirs(ATLAS_SEGMS_PATH, exist_ok=True)
 
     patients = load_patients(JSON_PATH)
-    preprocess_and_register_all_scans(patients, DATA_PATH, SAVE_TO)
+    preprocess_and_register_all_scans(patients=patients, data_path=DATA_PATH, save_to=SAVE_TO)
