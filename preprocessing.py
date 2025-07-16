@@ -1,19 +1,8 @@
 import os
-import re
-
 import json
-import glob
 
 import argparse
-
 import SimpleITK as sitk
-from radiomics import featureextractor
-import pandas as pd
-import re
-import os
-import logging
-
-import pypickle
 
 from tqdm import tqdm
 from pathlib import Path
@@ -22,14 +11,6 @@ from pathlib import Path
 def load_patients(json_path: Path):
     with open(json_path) as f:
         return json.load(f)
-
-
-def get_patient_id_from_path(path: Path):
-    match = re.search(r"Patient-(\d+)", path)
-    if match:
-        return f"patient_{match.group(1).zfill(3)}"
-    else:
-        raise ValueError(f"No valid patient ID found in path: {path}")
 
 
 def get_transform(fixed_image, moving_t1_image):
@@ -105,7 +86,6 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
 
     ATLAS_SCANS_PATH = save_to / "scans"
     ATLAS_SEGMS_PATH = save_to / "segmentations"
-    ATLAS_METADATA_PATH = save_to / "patients.json"
 
     new_patients_dict = {}
 
@@ -113,11 +93,9 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
         patient_cases = []
         for cid, meta in cases.items():
             try:
-                true_pid = get_patient_id_from_path(meta["baseline_registered"])
-
                 # --- Process BASELINE scans ---
                 baseline_t1_atlas_path = (
-                    ATLAS_SCANS_PATH / f"{true_pid}_{cid}_baseline_T1.nii.gz"
+                    ATLAS_SCANS_PATH / f"{pid}_{cid}_baseline_T1.nii.gz"
                 )
                 if not os.path.exists(baseline_t1_atlas_path):
                     baseline_t1_path = f"{data_path / meta['baseline_registered'].replace('./', '') / meta['baseline_registered'].replace('./images_registered/', '')}_0000.nii.gz"
@@ -138,7 +116,7 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
                         )
                         output_path = (
                             ATLAS_SCANS_PATH
-                            / f"{true_pid}_{cid}_baseline_{mri_type_name}.nii.gz"
+                            / f"{pid}_{cid}_baseline_{mri_type_name}.nii.gz"
                         )
                         sitk.WriteImage(registered_image, output_path)
 
@@ -150,13 +128,13 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
                         fixed_image, moving_seg, transform, is_segmentation=True
                     )
                     output_seg_path = (
-                        ATLAS_SEGMS_PATH / f"{true_pid}_{cid}_baseline_seg.nii.gz"
+                        ATLAS_SEGMS_PATH / f"{pid}_{cid}_baseline_seg.nii.gz"
                     )
                     sitk.WriteImage(registered_seg, output_seg_path)
 
                 # --- Process FOLLOWUP scans ---
                 followup_t1_atlas_path = (
-                    ATLAS_SCANS_PATH / f"{true_pid}_{cid}_followup_T1.nii.gz"
+                    ATLAS_SCANS_PATH / f"{pid}_{cid}_followup_T1.nii.gz"
                 )
                 if not os.path.exists(followup_t1_atlas_path):
                     followup_t1_path = f"{data_path / meta['followup_registered'].replace('./', '') / meta['followup_registered'].replace('./images_registered/', '')}_0000.nii.gz"
@@ -177,7 +155,7 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
                         )
                         output_path = (
                             ATLAS_SCANS_PATH
-                            / f"{true_pid}_{cid}_followup_{mri_type_name}.nii.gz"
+                            / f"{pid}_{cid}_followup_{mri_type_name}.nii.gz"
                         )
                         sitk.WriteImage(registered_image, output_path)
 
@@ -189,34 +167,40 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
                         fixed_image, moving_seg, transform, is_segmentation=True
                     )
                     output_seg_path = (
-                        ATLAS_SEGMS_PATH / f"{true_pid}_{cid}_followup_seg.nii.gz"
+                        ATLAS_SEGMS_PATH / f"{pid}_{cid}_followup_seg.nii.gz"
                     )
                     sitk.WriteImage(registered_seg, output_seg_path)
-                    
+
                     patient_cases += [
-                        {cid: {
-                            "baseline_T1": f"./{pid}_{cid}_baseline_T1.nii.gz",
-                            "baseline_T1CE": f"./{pid}_{cid}_baseline_T1CE.nii.gz",
-                            "baseline_T2": f"./{pid}_{cid}_baseline_T2.nii.gz",
-                            "baseline_FLAIR": f"./{pid}_{cid}_baseline_FLAIR.nii.gz",
-                            "baseline_seg": f"./{pid}_{cid}_baseline_seg.nii.gz",
-                            "followup_T1": f"./{pid}_{cid}_followup_T1.nii.gz",
-                            "followup_T1CE": f"./{pid}_{cid}_followup_T1CE.nii.gz",
-                            "followup_T2": f"./{pid}_{cid}_followup_T2.nii.gz",
-                            "followup_FLAIR": f"./{pid}_{cid}_followup_FLAIR.nii.gz",
-                            "followup_seg": f"./{pid}_{cid}_followup_seg.nii.gz",
-                            "label": meta["response"]
-                        }}
+                        {
+                            cid: {
+                                "baseline_T1": f"./{pid}_{cid}_baseline_T1.nii.gz",
+                                "baseline_T1CE": f"./{pid}_{cid}_baseline_T1CE.nii.gz",
+                                "baseline_T2": f"./{pid}_{cid}_baseline_T2.nii.gz",
+                                "baseline_FLAIR": f"./{pid}_{cid}_baseline_FLAIR.nii.gz",
+                                "baseline_seg": f"./{pid}_{cid}_baseline_seg.nii.gz",
+                                "followup_T1": f"./{pid}_{cid}_followup_T1.nii.gz",
+                                "followup_T1CE": f"./{pid}_{cid}_followup_T1CE.nii.gz",
+                                "followup_T2": f"./{pid}_{cid}_followup_T2.nii.gz",
+                                "followup_FLAIR": f"./{pid}_{cid}_followup_FLAIR.nii.gz",
+                                "followup_seg": f"./{pid}_{cid}_followup_seg.nii.gz",
+                                "label": meta["response"],
+                            }
+                        }
                     ]
             except Exception as e:
                 print(
-                    f"ERROR processing case {pid}/{cid}. True Patient: {get_patient_id_from_path(meta.get('baseline_registered', '')) if meta.get('baseline_registered') else 'Unknown'}. Error: {e}"
+                    f"ERROR processing case {pid}/{cid}. True Patient: {pid}. Error: {e}"
                 )
             finally:
                 pbar.update(1)
-            
+
         if patient_cases:
-            new_patients_dict[pid] = {case_id: case_meta for case in patient_cases for case_id, case_meta in case.items()}
+            new_patients_dict[pid] = {
+                case_id: case_meta
+                for case in patient_cases
+                for case_id, case_meta in case.items()
+            }
 
     pbar.close()
     print("--- Preprocessing complete. All files saved to atlas_mapping directory. ---")
@@ -267,4 +251,3 @@ if __name__ == "__main__":
 
     with open(REGISTERED_JSON_PATH, "w") as f:
         json.dump(patients_registered_dict, f, indent=4)
-
