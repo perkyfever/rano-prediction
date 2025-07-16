@@ -34,11 +34,7 @@ def get_dataset(
                     data_path / "scans" / case_info["baseline_T1CE"]
                 )
                 case_info["baseline_T2"] = (
-                    data_path
-                    / "scans"
-                    / case_info["baseline_T2"]
-                    / "scans"
-                    / case_info["baseline_T2"]
+                    data_path / "scans" / case_info["baseline_T2"]
                 )
                 case_info["baseline_FLAIR"] = (
                     data_path / "scans" / case_info["baseline_FLAIR"]
@@ -65,6 +61,6 @@ def get_dataset(
                 case_info["case_id"] = int(case_id.split("_")[-1])
                 cases_data.append(case_info)
                 labels.append(case_info["label"])
-
+    print(cases_data)
     monai_dataset = MDataset(data=cases_data, transform=transform)
     return monai_dataset, labels
