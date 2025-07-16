@@ -203,7 +203,7 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
             }
 
     pbar.close()
-    print("--- Preprocessing complete. All files saved to atlas_mapping directory. ---")
+    print(f"--- Preprocessing complete. All files saved to {save_to} directory. ---")
     return new_patients_dict
 
 
