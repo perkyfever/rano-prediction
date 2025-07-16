@@ -61,6 +61,6 @@ def get_dataset(
                 case_info["case_id"] = int(case_id.split("_")[-1])
                 cases_data.append(case_info)
                 labels.append(case_info["label"])
-    print(cases_data)
+
     monai_dataset = MDataset(data=cases_data, transform=transform)
     return monai_dataset, labels
