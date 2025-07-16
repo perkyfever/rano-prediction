@@ -85,12 +85,13 @@ def get_model(config):
     )
 
 
-def run_experiment(config):
+def run_experiment(config, tuning=True):
     seed_everything()
     acc_scores, f1_scores = [], []
     auc_scores, ap_scores = [], []
     model = get_model(config)
-    for fold_idx in range(len(fold_split)):
+    folds = [0, 1, 3, 4] if tuning else [2]
+    for fold_idx in folds:
         X_train, y_train, X_valid, y_valid = get_fold_data(fold_idx)
         model.fit(
             X_train,
@@ -240,12 +241,16 @@ if __name__ == "__main__":
     report = run_experiment(model_params)
     result = pd.DataFrame(report).reset_index().rename(columns={"index": "fold"})
 
+    test_report = run_experiment(model_params, tuning=False)
+    test_result = pd.DataFrame(test_report)
+
     os.makedirs(DATA_PATH.parent / "optuna_results", exist_ok=True)
     output_path = DATA_PATH.parent / "optuna_results" / f"{args.exp_name}.pkl"
     optuna_data = {
         "best_params": best_params,
         "best_score": best_score,
         "result": result,
+        "test_result": test_result,
     }
     pypickle.save(output_path, optuna_data, overwrite=True)
     print(f"Best Params: {best_params}")
