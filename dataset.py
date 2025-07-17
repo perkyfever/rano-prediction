@@ -7,13 +7,13 @@ from monai.data import Dataset as MDataset
 
 def get_dataset(
     data_path: Path,
-    indices: list[int] = None,
+    patients_ids: list[int] = None,
     transform: mt.Transform = None,
 ) -> tuple[MDataset, list[int]]:
     """
     Get simple MRI dataset from a directory structure.
     :param data_path: Path to the dataset directory.
-    :param indices: Optional list of patient indices to filter the dataset (trainval/test).
+    :param patients_ids: Optional list of patient ids to filter the dataset (trainval/test).
     :param transform: Optional MONAI transform to apply to the images.
     :return : A MONAI Dataset object containing the MRI images + labels and labels for convenience.
     """
@@ -24,7 +24,7 @@ def get_dataset(
     labels = []
     cases_data = []
     for patient_id, patient_data in patients_dict.items():
-        if indices is None or patient_id in indices:
+        if patients_ids is None or patient_id in patients_ids:
             for case_id, case_data in patient_data.items():
                 case_info = case_data.copy()
                 case_info["baseline_T1"] = (
