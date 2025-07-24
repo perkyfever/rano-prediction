@@ -22,17 +22,20 @@ def get_transform(fixed_image, moving_t1_image):
     """
     registration_method = sitk.ImageRegistrationMethod()
     registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=50)
-    registration_method.SetMetricSamplingStrategy(registration_method.REGULAR)
-    registration_method.SetMetricSamplingPercentage(0.05)
+    registration_method.SetMetricSamplingStrategy(registration_method.RANDOM)
+    registration_method.SetMetricSamplingPercentage(0.10)
 
     registration_method.SetInterpolator(sitk.sitkLinear)
     registration_method.SetOptimizerAsGradientDescent(
-        learningRate=0.50,
-        numberOfIterations=300,
+        learningRate=0.10,
+        numberOfIterations=500,
         convergenceMinimumValue=1e-6,
         convergenceWindowSize=10,
     )
     registration_method.SetOptimizerScalesFromPhysicalShift()
+    registration_method.SetShrinkFactorsPerLevel([4, 2, 1])
+    registration_method.SetSmoothingSigmasPerLevel([2, 1, 0])
+    registration_method.SmoothingSigmasAreSpecifiedInPhysicalUnitsOn()
 
     initial_transform = sitk.CenteredTransformInitializer(
         fixed_image,
