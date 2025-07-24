@@ -139,6 +139,14 @@ def run_training(
                     optimizer=optimizer,
                     scheduler=train_scheduler if train_scheduler is not None else valid_scheduler
                 )
+                # SAVE ON LAST EPOCH
+                if epoch == epochs:
+                    checkpointer.update(
+                        model=model,
+                        optimizer=optimizer,
+                        scheduler=train_scheduler if train_scheduler is not None else valid_scheduler,
+                        force_checkpoint=True
+                    )
         
     except KeyboardInterrupt:
         if make_checkpoints:
