@@ -127,14 +127,14 @@ def get_trainval_dataloaders(
 
     valid_loader = DataLoader(
         dataset=valid_dataset,
-        batch_size=train_batch_size,
+        batch_size=valid_batch_size,
         shuffle=False,
         num_workers=num_workers,
         generator=generator,
     )
     train_loader = DataLoader(
         dataset=train_dataset,
-        batch_size=valid_batch_size,
+        batch_size=train_batch_size,
         shuffle=None if resample else True,
         sampler=sampler if resample else None,
         num_workers=num_workers,
