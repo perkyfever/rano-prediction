@@ -51,7 +51,7 @@ class ModelCheckpointer:
             self.save_path = MODELS_PATH / run_name
             os.makedirs(self.save_path, exist_ok=False)
         except OSError as err:
-            print(f"Run with such name already exists. Error: {err}")
+            raise OSError(f"Run with such name already exists. Error: {err}") from err
 
         if config is not None:
             config_path = self.save_path / "config.pth"
