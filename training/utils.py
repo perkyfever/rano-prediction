@@ -2,7 +2,7 @@ import torch
 
 
 @torch.inference_mode()
-def test_model_correctness(model, loader, process_fn, device) -> str:
+def test_model_correctness(model, loader, process_fn, device) -> None:
     """
     Tests model correctness (just output dimension for now).
     :param model: model to test
@@ -10,12 +10,13 @@ def test_model_correctness(model, loader, process_fn, device) -> str:
     :param process_fn: function to process batch
     :param device: GPU device
     """
+    model.eval()
+    model = model.to(device)
     batch = next(iter(loader))
     baseline_data, followup_data, _ = process_fn(batch, device)
-    model = model.to(device)
-    outputs = model(baseline_data, followup_data).cpu().numpy()
+    outputs = model(baseline_data, followup_data).detach().cpu().numpy()
     assert (outputs.shape[-1] == 4), f"Wrong last output dimension. Expected {4}; Got {outputs.shape[-1]}"
-    return "MODEL SEEMS TO BE FINE!"
+    print("MODEL SEEMS TO BE FINE!")
 
 
 def calculate_params(model: torch.nn.Module) -> str:

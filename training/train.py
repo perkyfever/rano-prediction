@@ -37,7 +37,7 @@ def train_step(
         loss = loss_fn(outputs, labels) / batch_accum
 
     scaler.scale(loss).backward()
-    metric_logger.log(y_true=labels.cpu().numpy(), y_pred=outputs.cpu().numpy())
+    metric_logger.log(y_true=labels.cpu().numpy(), y_pred=outputs.detach().cpu().numpy())
 
     if step % batch_accum == 0:
         scaler.step(optimizer)

@@ -6,7 +6,7 @@ from tqdm import tqdm
 from mri.utils import seed_everything
 from mri.models.checkpoint import ModelCheckpointer
 
-from mri.training.metrics import MetricLogger
+from mri.training.metrics import MetricLogger, show_metrics
 from mri.training.train import train_epoch
 from mri.training.validate import evaluate_epoch
 
@@ -86,7 +86,7 @@ def run_training(
         train_scheduler = scheduler
         valid_scheduler = None
     
-    train_logs, valid_logs = [], []
+    train_logs, valid_logs, lr_logs = [], [], []
 
     try:
         pbar = tqdm(range(1, epochs + 1))
@@ -122,17 +122,16 @@ def run_training(
             valid_logs.append(metrics)
 
             # LOGGING
-            metrics_str = "\n".join(
-                [f"{epoch=}"] + [f"{metric}: {value}" for metric, value in metrics.items()]
-            )
-            pbar.set_postfix_str(metrics_str)
-            
+            lr_logs.append(optimizer.param_groups[0]["lr"])
+            pbar.set_postfix({metric: value for metric, value in valid_logs[-1].items() if "macro" in metric})
             if wandb_logging:
-                wandb.log({"lr": optimizer.param_groups[0]["lr"]})
+                wandb.log({"lr": lr_logs[-1]})
+            else:
+                show_metrics(train_logs=train_logs, valid_logs=valid_logs, lr_logs=lr_logs)
             
             # CHECKPOINTING
             if make_checkpoints:
-                metric = metrics[f"valid_{checkpoint_metric}"]
+                metric = metrics.get(f"valid_{checkpoint_metric}")
                 checkpointer.update(
                     metric=metric,
                     model=model,
