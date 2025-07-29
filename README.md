@@ -1,4 +1,6 @@
-# 🧠 Predicting Brain Tumor Response to Therapy using a Hybrid Deep Learning and Radiomics Approach
+<div align="center">
+<h1> Predicting Brain Tumor Response to Therapy using a Hybrid Deep Learning and Radiomics Approach </h1>
+</div> 
 
 **TODO**: Add a project description here.
 
