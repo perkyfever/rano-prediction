@@ -142,3 +142,42 @@ def get_trainval_dataloaders(
     )
 
     return train_loader, valid_loader
+
+
+def get_dataset(
+    data_path: Path,
+    patients_ids: list[int] = None,
+    transform: mt.Transform = None,
+) -> tuple[MDataset, list[int]]:
+    """
+    Get simple MRI dataset from a directory structure.
+    :param data_path: Path to the dataset directory.
+    :param patients_ids: Optional list of patient ids to filter the dataset (trainval/test).
+    :param transform: Optional MONAI transform to apply to the images.
+    :return : A MONAI Dataset object containing the MRI images + labels and labels for convenience.
+    """
+    JSON_PATH = data_path / "patients_registered.json"
+    with open(JSON_PATH, "r") as f:
+        patients_dict = json.load(f)
+
+    labels = []
+    cases_data = []
+
+    for patient_id, patient_data in patients_dict.items():
+        if patients_ids is None or patient_id in patients_ids:
+            for case_id, case_data in patient_data.items():
+                case_info = case_data.copy()
+                for mod in ["T1", "T1CE", "T2", "FLAIR"]:
+                    case_info[f"baseline_{mod}"] = data_path / "scans" / case_info[f"baseline_{mod}"]
+                    case_info[f"followup_{mod}"] = data_path / "scans" / case_info[f"followup_{mod}"]
+                
+                case_info[f"baseline_seg"] = data_path / "segmentations" / case_info[f"baseline_seg"]
+                case_info[f"followup_seg"] = data_path / "segmentations" / case_info[f"followup_seg"]
+
+                case_info["patient_id"] = int(patient_id.split("_")[-1])
+                case_info["case_id"] = int(case_id.split("_")[-1])
+                cases_data.append(case_info)
+                labels.append(case_info["label"])
+
+    monai_dataset = MDataset(data=cases_data, transform=transform)
+    return monai_dataset, labels
