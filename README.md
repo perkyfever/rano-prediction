@@ -43,7 +43,7 @@ DATA_DIR = WORK_DIR / "mri" / "data" / "preprocessed_data"
 OUT_NAME = "radiomics.csv"
 
 # Run feature extraction
-!python3 radiomics_features.py \
+!python3 radiomics/radiomics_features.py \
     --data={DATA_DIR.as_posix()} \
     --filename=OUT_NAME
 ```
@@ -70,7 +70,7 @@ EARLY_STOPPING_ROUNDS = 20
 EXP_NAME = "test_run"
 
 # Run Optuna tuning
-!python3 radiomics_optuna.py \
+!python3 radiomics/radiomics_optuna.py \
     --data={DATA_PATH.as_posix()} \
     --split={SPLIT_PATH.as_posix()} \
     --saveto={SAVE_TO_DIR.as_posix()} \

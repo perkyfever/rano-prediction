@@ -1,12 +1,13 @@
 import sys
 from pathlib import Path
-sys.path.append(Path(__file__).parent.parent.as_posix())
+
+sys.path.append(Path(__file__).parent.parent.parent.as_posix())
 
 import argparse
 import pandas as pd
 import SimpleITK as sitk
 
-from dataset import get_dataset
+from mri.dataset import get_dataset
 
 import logging
 from tqdm import tqdm
@@ -88,12 +89,16 @@ def extract_features(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MRI radiomics features extracting script.")
+    parser = argparse.ArgumentParser(
+        description="MRI radiomics features extracting script."
+    )
     parser.add_argument("--data", type=str, default=".", help="Path to data directory")
-    parser.add_argument("--filename", type=str, default=".", help="Name for output csv file")
+    parser.add_argument(
+        "--filename", type=str, default=".", help="Name for output csv file"
+    )
 
     args = parser.parse_args()
-    
+
     DATA_PATH = Path(args.data)
     FILE_NAME = args.filename
     extract_features(data_path=DATA_PATH, file_name=FILE_NAME)

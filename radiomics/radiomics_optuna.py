@@ -1,8 +1,11 @@
 import os
-import sys
 import json
 
-import utils
+import sys
+from pathlib import Path
+
+sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+
 import pypickle
 import argparse
 
@@ -17,8 +20,7 @@ import scipy.stats as sp
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from pathlib import Path
-from utils import RANDOM_SEED
+from mri.utils import RANDOM_SEED
 from catboost import CatBoostClassifier
 
 from sklearn.metrics import (
