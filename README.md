@@ -54,7 +54,7 @@ OUT_NAME = "radiomics.csv"
 from pathlib import Path
 
 # Setup paths
-USERNAME = "tihonovda"
+USERNAME = "username"
 WORK_DIR = Path("/home") / USERNAME
 DATA_DIR = WORK_DIR / "mri" / "data" / "preprocessed_data"
 DATA_PATH = DATA_DIR / "radiomics.csv"
