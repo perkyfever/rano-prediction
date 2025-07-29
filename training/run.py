@@ -1,5 +1,5 @@
+import comet_ml
 import torch
-import wandb
 
 from tqdm import tqdm
 
@@ -22,8 +22,7 @@ def run_training(
     process_fn,
     metric_logger: MetricLogger,
     batch_accum=1,
-    wandb_logging=False,
-    wandb_config=None,
+    comet_logging=False,
     scheduler=None,
     scheduler_step="epoch",
     scheduler_metric=None,
@@ -46,8 +45,7 @@ def run_training(
     :param process_fn: function to process batch
     :param metric_logger: MetricLogger
     :param batch_accum: batch accumulation steps
-    :param wandb_logging: flag to log wandb graphs
-    :param wandb_config: wandb run config
+    :param comet_logging: flag to log comet graphs
     :param scheduler: learning rate scheduler
     :param scheduler_metric: metric for scheduler in case it is needed
     :param scheduler_step: scheduler step frequency ('epoch' or 'batch')
@@ -75,12 +73,9 @@ def run_training(
             overwrite=overwrite
         )
 
-    if wandb_logging:
-        wandb.init(
-            project="MRI Classification",
-            name=run_name,
-            config=wandb_config
-        )
+    if comet_logging:
+        exp = comet_ml.Experiment(project_name="rano-prediction")
+        exp.set_name(run_name)
 
     if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
         train_scheduler = None
@@ -104,7 +99,7 @@ def run_training(
                 process_fn=process_fn,
                 metric_logger=metric_logger,
                 scheduler=train_scheduler,
-                wandb_logging=wandb_logging,
+                logging_exp=exp,
                 batch_accum=batch_accum,
                 scheduler_step=scheduler_step
             )
@@ -119,7 +114,7 @@ def run_training(
                 process_fn=process_fn,
                 metric_logger=metric_logger,
                 scheduler=valid_scheduler,
-                wandb_logging=wandb_logging,
+                logging_exp=exp,
                 scheduler_metric=scheduler_metric
             )
             valid_logs.append(metrics)
@@ -127,8 +122,8 @@ def run_training(
             # LOGGING
             lr_logs.append(optimizer.param_groups[0]["lr"])
             pbar.set_postfix({metric: value for metric, value in valid_logs[-1].items() if "macro" in metric})
-            if wandb_logging:
-                wandb.log({"lr": lr_logs[-1]})
+            if comet_logging:
+                exp.log_metrics({"lr": lr_logs[-1]})
             else:
                 show_metrics(train_logs=train_logs, valid_logs=valid_logs, lr_logs=lr_logs)
             
@@ -159,7 +154,7 @@ def run_training(
                 force_checkpoint=True
             )
     finally:
-        if wandb_logging:
-            wandb.finish()
+        if comet_logging:
+            exp.end()
     
     return train_logs, valid_logs

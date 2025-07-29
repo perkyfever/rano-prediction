@@ -44,7 +44,7 @@ def evaluate_epoch(
     process_fn,
     metric_logger: MetricLogger,
     scheduler=None,
-    wandb_logging=False,
+    logging_exp=None,
     scheduler_metric=None,
 ) -> dict:
     """
@@ -56,7 +56,7 @@ def evaluate_epoch(
     :param process_fn: function to process batch
     :param metric_logger: MetricLogger
     :param scheduler: learning rate scheduler
-    :param wandb_logging: flag to log wandb graphs
+    :param logging_exp: comet logging exp
     :param scheduler_metric: metric to maximize ('f1', 'acc', etc.)
     :return: metrics
     """
@@ -81,8 +81,8 @@ def evaluate_epoch(
     metrics = {f"valid_{key}": value for key, value in metrics.items()}
     metrics["valid_loss"] = total_loss / len(loader)
 
-    if wandb_logging:
-        wandb.log(metrics)
+    if logging_exp is not None:
+        logging_exp.log_metrics(metrics)
 
     if scheduler is not None and scheduler_metric is not None:
         scheduler.step(metrics[f"valid_{scheduler_metric}"])

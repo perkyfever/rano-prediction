@@ -56,7 +56,7 @@ def train_epoch(
     process_fn,
     metric_logger: MetricLogger,
     scheduler=None,
-    wandb_logging=False,
+    logging_exp=None,
     batch_accum=1,
     scheduler_step="epoch",
 ) -> dict:
@@ -70,7 +70,7 @@ def train_epoch(
     :param process_fn: function to process batch
     :param metric_logger: MetricLogger
     :param scheduler: learning rate scheduler
-    :param wandb_logging: flag to log wandb graphs
+    :param logging_exp: comet logging exp
     :param batch_accum: batch accumulation steps
     :param scheduler_step: scheduler step frequency ('epoch' or 'batch')
     :return: loss history
@@ -111,8 +111,8 @@ def train_epoch(
             metric_logger.reset()
             train_loss.append(metrics["train_loss"])
 
-            if wandb_logging:
-                wandb.log(metrics)
+            if logging_exp is not None:
+                logging_exp.log_metrics({"train_loss": metrics["train_loss"]})
 
             if scheduler is not None and scheduler_step == "batch":
                 scheduler.step()
