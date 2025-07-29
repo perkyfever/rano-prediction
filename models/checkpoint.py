@@ -34,7 +34,7 @@ def load_run_checkpoint(run_name: str):
 
 
 class ModelCheckpointer:
-    def __init__(self, run_name: str, checkpoint_freq: int, config: dict | None = None):
+    def __init__(self, run_name: str, checkpoint_freq: int, config: dict | None = None, overwrite: bool = False):
         """
         Creates model checkpoints.
         :param run_name: run name
@@ -49,7 +49,7 @@ class ModelCheckpointer:
 
         try:
             self.save_path = MODELS_PATH / run_name
-            os.makedirs(self.save_path, exist_ok=False)
+            os.makedirs(self.save_path, exist_ok=overwrite)
         except OSError as err:
             raise OSError(f"Run with such name already exists. Error: {err}") from err
 

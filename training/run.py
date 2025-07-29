@@ -31,6 +31,7 @@ def run_training(
     checkpoint_freq=None,
     checkpoint_config=None,
     checkpoint_metric=None,
+    overwrite=False,
 ) -> None:
     """
     Train model.
@@ -54,6 +55,7 @@ def run_training(
     :param checkpoint_freq: checkpoint frequency (in epochs)
     :param checkpoint_config: config to checkpoint
     :param checkpoint_metric: metric for early stopping (e.g. 'f1', 'acc', etc.)
+    :param overwrite: if to overwrite the experiment logs
     :return: train loss and validation metrics history
     """
     
@@ -69,7 +71,8 @@ def run_training(
         checkpointer = ModelCheckpointer(
             run_name=run_name,
             checkpoint_freq=checkpoint_freq,
-            config=checkpoint_config
+            config=checkpoint_config,
+            overwrite=overwrite
         )
 
     if wandb_logging:
