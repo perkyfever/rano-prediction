@@ -1,4 +1,6 @@
+import torch
 import numpy as np
+
 from monai import transforms as mt
 from monai.transforms import MapTransform
 
@@ -31,7 +33,7 @@ class ReorganizeTransform(MapTransform):
         return data
 
 
-class CropAround3DMaskd(mt.MapTransform):
+class CropAround3DMaskd(MapTransform):
     def __init__(self, keys, mask_key, margin=10):
         super().__init__(keys)
         self.mask_key = mask_key
@@ -60,5 +62,27 @@ class CropAround3DMaskd(mt.MapTransform):
             img = d[key]
             # img shape assumed (C, H, W, D)
             d[key] = img[:, minz:maxz, miny:maxy, minx:maxx]
+
+        return d
+
+
+class To2D(MapTransform):
+    def __init__(self, required_keys=("T1", "T1CE", "T2", "FLAIR", "seg")):
+        super().__init__(keys=None)
+        self.required_keys = required_keys
+
+    def __call__(self, data):
+        if isinstance(data, list):
+            data = data[0]
+      
+        d = dict(data)
+        for key in self.required_keys:
+            for temp in ["baseline", "followup"]:
+                key = f"{temp}_{key}"
+                image = d[key]
+                axial = torch.mean(image, dim=0)
+                saggital = torch.mean(image, dim=1)
+                coronal = torch.mean(image, dim=2)
+                d[key] = torch.stack([axial, saggital, coronal])
 
         return d

@@ -5,6 +5,8 @@ def default_process(batch, device):
     :param device: device to move input to
     :return: (baseline_data, followup_data data, labels)
     """
+    if isinstance(batch, list):
+        batch = batch[0] # HARDCODED :)
     baseline_data = {k: v.to(device) for k, v in batch["baseline"].items()}
     followup_data = {k: v.to(device) for k, v in batch["followup"].items()}
     labels = batch["label"].to(device)
