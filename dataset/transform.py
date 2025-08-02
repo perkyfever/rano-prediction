@@ -44,6 +44,11 @@ class CropAround3DMaskd(MapTransform):
         mask = d[self.mask_key][0]  # assuming mask shape (C=1, H, W, D)
         # Find bounding box of non-zero voxels
         nonzero = np.nonzero(mask)
+        
+        if len(nonzero[0]) == 0:
+            # Mask is empty: skip cropping and return original images
+            return d
+
         minz, maxz = nonzero[0].min(), nonzero[0].max()
         miny, maxy = nonzero[1].min(), nonzero[1].max()
         minx, maxx = nonzero[2].min(), nonzero[2].max()
