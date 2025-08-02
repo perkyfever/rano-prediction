@@ -31,6 +31,7 @@ def run_training(
     checkpoint_config=None,
     checkpoint_metric=None,
     overwrite=False,
+    grad_clipping=True
 ) -> None:
     """
     Train model.
@@ -54,6 +55,7 @@ def run_training(
     :param checkpoint_config: config to checkpoint
     :param checkpoint_metric: metric for early stopping (e.g. 'f1', 'acc', etc.)
     :param overwrite: if to overwrite the experiment logs
+    :param grad_clipping: grad clipping
     :return: train loss and validation metrics history
     """
     
@@ -64,6 +66,9 @@ def run_training(
     seed_everything()
     model = model.to(device)
     
+    if grad_clipping:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
     checkpointer = None
     if make_checkpoints:
         checkpointer = ModelCheckpointer(
