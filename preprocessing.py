@@ -187,7 +187,7 @@ def preprocess_and_register_all_scans(patients: dict, data_path: Path, save_to: 
                                 "followup_T2": f"./{pid}_{cid}_followup_T2.nii.gz",
                                 "followup_FLAIR": f"./{pid}_{cid}_followup_FLAIR.nii.gz",
                                 "followup_seg": f"./{pid}_{cid}_followup_seg.nii.gz",
-                                "label": meta["response"],
+                                "label": meta.get("response", -1),
                             }
                         }
                     ]
