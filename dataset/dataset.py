@@ -43,8 +43,10 @@ def get_dataset(
                     case_info[f"followup_{key}"] = (
                         data_path / folder / case_info[f"followup_{key}"]
                     )
-                case_info["patient_id"] = int(patient_id.split("_")[-1])
-                case_info["case_id"] = int(case_id.split("_")[-1])
+                # case_info["patient_id"] = int(patient_id.split("_")[-1])
+                # case_info["case_id"] = int(case_id.split("_")[-1])
+                case_info["patient_id"] = patient_id
+                case_info["case_id"] = case_id
                 cases_data.append(case_info)
                 labels.append(case_info["label"])
 
