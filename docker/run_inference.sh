@@ -32,14 +32,16 @@ if [ ! -f "$ATLAS_FILENAME" ]; then
   exit 1
 fi
 
+export MPLCONFIGDIR=/mnt/pred/matplotlib
+
 echo "=== Step 1: Preprocessing ==="
-python3 /workspace/preprocessing.py \
+/usr/bin/python3 /workspace/preprocessing.py \
     --data "$TEST_DATA_DIR" \
     --saveto "$PREPROCESSED_DIR" \
     --atlas "$ATLAS_FILENAME"
 
 echo "=== Step 2: Inference ==="
-python3 /workspace/inference.py \
+/usr/bin/python3 /workspace/inference.py \
     --chkp_path "$CHECKPOINT_PATH" \
     --data_path "$PREPROCESSED_DIR" \
     --output_path "$PRED_DIR"

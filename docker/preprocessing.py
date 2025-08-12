@@ -248,6 +248,7 @@ if __name__ == "__main__":
     patients_registered_dict = preprocess_and_register_all_scans(
         patients=patients, data_path=DATA_PATH, save_to=SAVE_TO
     )
- 
-    with open(REGISTERED_JSON_PATH, "w") as f:
-        json.dump(patients_registered_dict, f, indent=4)
+    
+    if patients_registered_dict:
+        with open(REGISTERED_JSON_PATH, "w") as f:
+            json.dump(patients_registered_dict, f, indent=4)

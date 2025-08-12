@@ -3,7 +3,7 @@ import sys
  
 from pathlib import Path
  
-BMMAE_PATH = Path(__file__).parent.parent / "BM-MAE"
+BMMAE_PATH = Path(__file__).parent / "BM-MAE"
 sys.path.append(BMMAE_PATH.as_posix())
  
 import json
@@ -14,9 +14,6 @@ import torch.nn as nn
  
 from bmmae.model import ViTEncoder
 from bmmae.tokenizers import MRITokenizer
- 
-from torch import autocast
-from torch.utils.data import DataLoader
  
 from tqdm import tqdm
  
@@ -176,11 +173,11 @@ class CropAround3DMaskd(mt.MapTransform):
         return d
  
 def get_transform() -> mt.Compose:
-    baseline_image_keys = ["baseline_FLAIR", "baseline_T1", "baseline_T1CE", "baseline_T2", "baseline_seg"]
-    followup_image_keys = ["followup_FLAIR", "followup_T1", "followup_T1CE", "followup_T2", "followup_seg"]
+    baseline_image_keys = ["baseline_FLAIR", "baseline_T1", "baseline_T1CE", "baseline_T2"]
+    followup_image_keys = ["followup_FLAIR", "followup_T1", "followup_T1CE", "followup_T2"]
     keys = baseline_image_keys + followup_image_keys
  
-    required_keys = ["T1", "T1CE", "T2", "FLAIR", "seg"]
+    required_keys = ["T1", "T1CE", "T2", "FLAIR"]
     baseline_keys = [f"baseline_{key}" for key in required_keys]
     followup_keys = [f"followup_{key}" for key in required_keys]
     all_image_keys = baseline_keys + followup_keys
@@ -190,7 +187,7 @@ def get_transform() -> mt.Compose:
         mt.EnsureChannelFirstd(keys=keys),
         mt.EnsureTyped(keys=all_image_keys),
         mt.Transposed(keys=all_image_keys, indices=(0, 2, 1, 3)),
-        mt.Spacingd(keys=[image_key for image_key in all_image_keys if "seg" in image_key], pixdim=(1.0, 1.0, 1.0), mode="nearest"),
+        # mt.Spacingd(keys=[image_key for image_key in all_image_keys if "seg" in image_key], pixdim=(1.0, 1.0, 1.0), mode="nearest"),
         mt.Spacingd(keys=[image_key for image_key in all_image_keys if "seg" not in image_key], pixdim=(1.0, 1.0, 1.0), mode=("bilinear")),
         CropAround3DMaskd(keys=baseline_image_keys, mask_key="baseline_seg"),
         CropAround3DMaskd(keys=followup_image_keys, mask_key="followup_seg"),
@@ -237,14 +234,14 @@ def get_dataset(
     JSON_PATH = data_path / "patients_registered.json"
     with open(JSON_PATH, "r") as f:
         patients_dict = json.load(f)
- 
+
     labels = []
     cases_data = []
     for patient_id, patient_data in patients_dict.items():
         if patients_ids is None or patient_id in patients_ids:
             for case_id, case_data in patient_data.items():
                 case_info = case_data.copy()
-                required_keys = ["T1", "T1CE", "T2", "FLAIR", "seg"]
+                required_keys = ["T1", "T1CE", "T2", "FLAIR"]
                 for key in required_keys:
                     folder = "segmentations" if key == "seg" else "scans"
                     case_info[f"baseline_{key}"] = (
@@ -258,8 +255,8 @@ def get_dataset(
                 case_info["patient_id"] = patient_id
                 case_info["case_id"] = case_id
                 cases_data.append(case_info)
-                labels.append(case_info["label"])
- 
+                # labels.append(case_info["label"])
+
     monai_dataset = MDataset(data=cases_data, transform=transform)
     return monai_dataset, labels
  
