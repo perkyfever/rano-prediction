@@ -2,7 +2,23 @@
 <h1> Predicting Brain Tumor Response to Therapy using a Hybrid Deep Learning and Radiomics Approach </h1>
 </div> 
 
-**TODO**: Add a project description here.
+Accurate evaluation of the response of glioblastoma to therapy is crucial for clinical decision-making and patient management. The
+Response Assessment in Neuro-Oncology (RANO) criteria provide a standardized framework to assess patients’ clinical response, but their application can be complex and subject to observer variability. This paper
+presents an automated method for classifying the intervention response
+from longitudinal MRI scans, developed to predict tumor response during
+therapy as part of the BraTS 2025 challenge. We propose a novel hybrid
+framework that combines deep learning derived feature extraction and an
+extensive set of radiomics and clinically-chosen features. Our approach
+utilizes fine-tuned ResNet-18 model to extract features from 2D regions
+of interest across four MRI modalities. These deep features are then fused
+with a rich set of more than 4,800 radiomic and clinically-driven features,
+including 3D radiomics of tumor growth and shrinkage masks, volumetric
+changes relative to the nadir, and tumor centroid shift. Using the fused
+feature set, a CatBoost classifier achieves a mean ROC AUC of 0.81 and
+a Macro F1 score of 0.50 in the 4-class response prediction task (Complete Response, Partial Response, Stable Disease, Progressive Disease).
+Our results highlight that synergizing learned image representations with
+domain-targeted radiomic features provides a robust and effective solution for automated treatment response assessment in neuro-oncology.
+
 
 ## Running Scripts
 
